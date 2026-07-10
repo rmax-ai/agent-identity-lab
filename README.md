@@ -11,16 +11,28 @@ Most AI agents authenticate using weak patterns (personal credentials, broad ser
 ## Architecture
 
 ```
-Admin UI → Identity Control API → Policy Engine → Token Broker → MCP Gateway → Tools
-                                                                       ↓
-                                                                 PostgreSQL + Audit
+Identity API → Policy Engine → Token Broker → MCP Gateway → Tools
+                                              ↓
+                                        PostgreSQL + Audit
 ```
 
 ## Quick Start
 
 ```bash
+# Install dependencies
+uv sync --extra dev
+
+# Generate dev keys
+bash scripts/generate_dev_keys.sh
+
+# Run services
 docker compose up -d
-make demo-authorized-read
+
+# Run tests
+PYTHONPATH=. uv run pytest tests/ -v
+
+# Run demo (requires services running)
+PYTHONPATH=. uv run python examples/delegated_research/authorized_read.py
 ```
 
 ## Documentation
@@ -37,13 +49,13 @@ make demo-authorized-read
 
 | Phase | Scope | Status |
 |-------|-------|--------|
-| 1 | Core Identity Model | 🔴 |
-| 2 | Sessions and Tokens | 🔴 |
-| 3 | Policy Enforcement | 🔴 |
-| 4 | MCP Gateway | 🔴 |
-| 5 | Token Brokerage | 🔴 |
-| 6 | Audit and UI | 🔴 |
-| 7 | Hermes Demo + Docs | 🔴 |
+| 1 | Core Identity Model | ✅ |
+| 2 | Sessions and Tokens | ✅ |
+| 3 | Policy Enforcement | ✅ |
+| 4 | MCP Gateway | ✅ |
+| 5 | Token Brokerage | ✅ |
+| 6 | Audit Chain | ✅ |
+| 7 | Hermes Demo + Docs | ✅ |
 
 ## License
 

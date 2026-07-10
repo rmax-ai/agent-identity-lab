@@ -79,16 +79,16 @@ services:
     ports:
       - "${MOCK_MCP_PORT:-8003}:8003"
 
-  admin_ui:
-    build:
-      context: apps/admin_ui
-      dockerfile: Dockerfile
-    ports:
-      - "3000:3000"
-    environment:
-      NEXT_PUBLIC_API_URL: http://localhost:8000
-    depends_on:
-      - identity_api
+  # admin_ui:  # Planned post-MVP — Next.js Dockerfile not yet created
+  #   build:
+  #     context: apps/admin_ui
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "3000:3000"
+  #   environment:
+  #     NEXT_PUBLIC_API_URL: http://localhost:8000
+  #   depends_on:
+  #     - identity_api
 
 volumes:
   postgres_data:

@@ -15,7 +15,7 @@ This is a monorepo with two layers:
 | token_broker | 8001 | Downstream credential issuance (no raw secret exposure) |
 | mcp_gateway | 8002 | AuthN/Z proxy between agents and MCP servers |
 | mock_mcp_server | 8003 | Test MCP server for development |
-| admin_ui | 3000 | Next.js dashboard |
+| admin_ui | 3000 | Next.js dashboard (planned post-MVP) |
 
 ### Data Flow
 
@@ -40,7 +40,7 @@ Agent → mcp_gateway → (auth check) → identity_api → policy_engine → to
 - Python 3.12+, FastAPI, Pydantic v2, SQLAlchemy 2, Alembic
 - PostgreSQL (Docker Compose)
 - Open Policy Agent (OPA)
-- Next.js + TypeScript + Tailwind (admin UI)
+- Next.js + TypeScript + Tailwind (admin UI — planned post-MVP)
 - Docker Compose for local dev
 
 ## Development
@@ -60,16 +60,16 @@ uv run ruff check .
 uv run ruff format --check .
 
 # Type check
-uv run ty check
+PYTHONPATH=. uv run ty check
 ```
 
 ## Testing Standards
 
 - TDD: RED-GREEN-REFACTOR for all production code
-- pytest + pytest-asyncio
-- Testcontainers for integration tests
+- pytest + pytest-asyncio + aiosqlite (unit tests)
+- PostgreSQL via Docker Compose (integration tests)
 - Hypothesis for property-based policy/token invariants
-- Playwright for UI tests
+- Playwright for UI tests (planned post-MVP)
 
 ## Commit Convention
 
