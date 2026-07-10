@@ -1,0 +1,138 @@
+---
+title: Architecture
+description: System architecture, data flow, and design decisions
+---
+
+<script>
+  import { base } from "$app/paths";
+</script>
+
+<svelte:head>
+  <title>Architecture — Agent Identity Lab</title>
+</svelte:head>
+
+# Architecture
+
+## System Overview
+
+Agent Identity Lab is a monorepo with two layers: **packages** (shared logic) and **apps** (deployable services). Five services form the control plane, all running locally via Docker Compose.
+
+<div class="my-8">
+  <img src={base + "/architecture.svg"} alt="Agent Identity Lab Architecture" class="w-full h-auto rounded-lg border border-slate-800" />
+</div>
+
+## Service Boundaries
+
+| Service | Port | Responsibility |
+|---------|------|----------------|
+| `identity_api` | 8000 | Blueprints, agents, sessions, delegation, authorization, audit |
+| `token_broker` | 8001 | Downstream credential issuance — agents never see raw API keys |
+| `mcp_gateway` | 8002 | AuthN/Z proxy between agents and MCP servers |
+| `mock_mcp_server` | 8003 | Test MCP server for development |
+| `admin_ui` | 3000 | Next.js dashboard (planned post-MVP) |
+
+## Data Flow
+
+```
+Agent → mcp_gateway → (auth check) → identity_api → policy_engine → token_broker → mcp_gateway → mock_mcp_server
+                                                                                              ↓
+                                                                                        audit log
+```
+
+Every request flows through the gateway, which authenticates the session token, calls the identity API for authorization, obtains downstream credentials from the token broker if allowed, and injects them server-side before forwarding to the tool.
+
+## Policy Engine
+
+The policy engine supports two adapters:
+
+- **OPA (Open Policy Agent):** Production-grade Rego policy evaluation via REST API. Fail-closed — if OPA is unreachable, access is denied.
+- **Python fallback:** Local policy evaluator implementing scope intersection. Used when OPA is unavailable or for testing.
+
+### Authorization Model
+
+```
+Effective Scopes = User Scopes ∩ Agent Scopes ∩ Blueprint Scopes ∩ Tool Required Scopes ∩ Environment Policy
+```
+
+### Policy Decisions
+
+| Decision | Meaning |
+|----------|---------|
+| `allow` | All checks passed, effective scopes computed |
+| `allow` with reduced scopes | Some requested scopes removed by intersection |
+| `deny` | Any check failed — deny by default |
+
+## Token Model
+
+Agent Session Tokens are signed JWTs with the following claims:
+
+| Claim | Description |
+|-------|-------------|
+| `sub` | Agent principal URI (`agent:uuid`) |
+| `aud` | `mcp-gateway` |
+| `agent_id` | Agent UUID |
+| `blueprint_id` | Blueprint slug + version |
+| `acting_user` | Human user ID (null for machine-only) |
+| `scopes` | Effective scopes after intersection |
+| `runtime_digest` | Container image SHA |
+| `trace_id` | Request trace identifier |
+| `exp` | Expiration (max 30 minutes) |
+
+Asymmetric RS256 signing. Tokens are validated on every gateway request.
+
+## Security Architecture
+
+### Attestation
+
+Runtime attestation binds agent sessions to execution context:
+
+1. Runtime generates claims (container digest, git commit, environment, framework, model)
+2. Claims are signed with the agent's registered private key
+3. Identity service verifies: signature, timestamp freshness (5 min window), nonce uniqueness
+
+### Credential Isolation
+
+Agents never receive raw downstream credentials:
+
+1. Agent requests a tool via the MCP Gateway
+2. Gateway authenticates the session and authorizes the action
+3. Token Broker issues a short-lived downstream credential
+4. Gateway injects the credential server-side in the forwarded request
+5. Only credential lease metadata is logged — no raw secrets
+
+### Audit Chain
+
+Every decision is recorded in a tamper-evident append-only chain:
+
+```
+record_hash = SHA256(previous_hash + canonical_event_json)
+```
+
+The chain can be verified via `POST /v1/audit/verify-chain`. Any tampering is detected as a hash mismatch.
+
+## Key Design Decisions
+
+<div class="space-y-4 my-6">
+  <div class="p-4 rounded-lg border border-slate-800 bg-slate-900/50">
+    <div class="text-sm font-['JetBrains_Mono'] text-cyan-400 mb-1">ADR-001</div>
+    <div class="font-semibold text-white">Agents as First-Class Principals</div>
+    <p class="text-sm text-slate-400 mt-1">Agents are uniquely identifiable security principals, not shared service accounts or personal credentials.</p>
+  </div>
+  <div class="p-4 rounded-lg border border-slate-800 bg-slate-900/50">
+    <div class="text-sm font-['JetBrains_Mono'] text-cyan-400 mb-1">ADR-003</div>
+    <div class="font-semibold text-white">Permission Intersection Model</div>
+    <p class="text-sm text-slate-400 mt-1">Effective permissions are the intersection of user, agent, blueprint, tool, and environment constraints — never the union.</p>
+  </div>
+  <div class="p-4 rounded-lg border border-slate-800 bg-slate-900/50">
+    <div class="text-sm font-['JetBrains_Mono'] text-cyan-400 mb-1">ADR-004</div>
+    <div class="font-semibold text-white">Server-Side Credential Injection</div>
+    <p class="text-sm text-slate-400 mt-1">Downstream credentials are injected by the gateway, not exposed to agent runtimes.</p>
+  </div>
+  <div class="p-4 rounded-lg border border-slate-800 bg-slate-900/50">
+    <div class="text-sm font-['JetBrains_Mono'] text-cyan-400 mb-1">ADR-007</div>
+    <div class="font-semibold text-white">Gateway as Enforcement Boundary</div>
+    <p class="text-sm text-slate-400 mt-1">All agent-to-tool traffic flows through the MCP Gateway. No direct agent access to tools.</p>
+  </div>
+</div>
+
+[← Back to home](../)

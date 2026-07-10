@@ -1,0 +1,150 @@
+---
+title: Development Phases
+description: What was built in each phase
+---
+
+<svelte:head>
+  <title>Phases — Agent Identity Lab</title>
+</svelte:head>
+
+# Development Phases
+
+The project was built in 7 sequential phases over a single development session. Each phase produced working, tested code that built on the previous one.
+
+## Phase 0: Infrastructure Scaffold
+
+Set up the foundation before any business logic.
+
+| Artifact | Purpose |
+|----------|---------|
+| `packages/common/settings.py` | Pydantic-settings for all env vars |
+| `apps/identity_api/dependencies.py` | Async DB sessions + admin auth |
+| `apps/identity_api/main.py` | FastAPI app with CORS + JSON logging |
+| 4 × `Dockerfile` | One per service (identity, broker, gateway, mock) |
+| `scripts/generate_dev_keys.sh` | RSA key pair generation |
+| `tests/conftest.py` | SQLite TestClient fixtures |
+| `pyproject.toml` | 57 dependencies + entry points |
+
+## Phase 1: Core Identity Model
+
+**Delivered:** PostgreSQL schema, blueprint API, agent identity API, lifecycle state machine.
+
+| Component | Files | Tests |
+|-----------|-------|-------|
+| Enums + Base Model | `packages/common/` | 6 |
+| AgentBlueprint model | `packages/identity_models/blueprint.py` | — |
+| AgentIdentity model | `packages/identity_models/agent.py` | — |
+| Pydantic schemas | `packages/identity_models/schemas.py` | 3 |
+| Repositories | `apps/identity_api/repositories/` | — |
+| API endpoints | `apps/identity_api/api/{blueprints,agents}.py` | 10 |
+
+**Lifecycle states:** `draft` → `pending_approval` → `active` → `suspended` → `revoked` → `decommissioned`
+
+## Phase 2: Sessions and Tokens
+
+**Delivered:** Runtime attestation, JWT session tokens, delegation grants.
+
+| Component | Files | Tests |
+|-----------|-------|-------|
+| RuntimeAttestation model | `packages/attestation/models.py` | — |
+| Attestation verifier | `packages/attestation/verifier.py` | 5 |
+| DelegationGrant model | `packages/identity_models/delegation.py` | — |
+| AgentSession model | `packages/identity_models/session.py` | — |
+| JWT issuer + validator | `packages/token_library/` | 5 |
+| Session service + API | `apps/identity_api/services/session_service.py` | 7 |
+
+**Token security:** RS256 asymmetric signing, 30-min max lifetime, audience validation, nonce-based replay prevention.
+
+## Phase 3: Policy Enforcement
+
+**Delivered:** Policy adapter interface, OPA integration, scope intersection.
+
+| Component | Files | Tests |
+|-----------|-------|-------|
+| Policy adapter (ABC) | `packages/policy_client/adapter.py` | — |
+| Python policy adapter | `packages/policy_client/python_adapter.py` | 6 |
+| OPA adapter | `packages/policy_client/opa_adapter.py` | — |
+| Rego policies | `policies/agent_access.rego` | — |
+| `/v1/authorize` endpoint | `apps/identity_api/api/authorization.py` | 3 |
+| Property-based tests | `tests/unit/test_policy_properties.py` | 2 |
+
+## Phase 4: MCP Gateway
+
+**Delivered:** Gateway proxy, tool registry, auth middleware.
+
+| Component | Files | Tests |
+|-----------|-------|-------|
+| Tool registry | `apps/mcp_gateway/tool_registry/registry.py` | 4 |
+| Auth middleware | `apps/mcp_gateway/middleware/auth.py` | — |
+| Proxy forwarder | `apps/mcp_gateway/proxy/forwarder.py` | — |
+| Mock MCP server | `apps/mock_mcp_server/main.py` | 8 |
+
+## Phase 5: Token Brokerage
+
+**Delivered:** Credential provider interface, mock OAuth, static secret injection.
+
+| Component | Files | Tests |
+|-----------|-------|-------|
+| CredentialLease model | `packages/identity_models/credential_lease.py` | — |
+| Provider interface | `apps/token_broker/providers/base.py` | — |
+| Mock OAuth + Static Secret | `apps/token_broker/providers/` | 4 |
+| `/v1/token-exchange` | `apps/token_broker/main.py` | 2 |
+
+**No raw credentials stored** — lease records contain only metadata.
+
+## Phase 6: Audit Chain
+
+**Delivered:** Tamper-evident hash chain, audit API.
+
+| Component | Files | Tests |
+|-----------|-------|-------|
+| AuditEvent model | `packages/audit/models.py` | — |
+| SHA256 hash chain | `packages/audit/chain.py` | 3 |
+| Audit writer | `packages/audit/writer.py` | — |
+| Audit API | `apps/identity_api/api/audit.py` | — |
+
+## Phase 7: Integration + Documentation
+
+**Delivered:** Python SDK, demos, architecture docs.
+
+| Component | Files | Tests |
+|-----------|-------|-------|
+| AgentIdentityClient SDK | `packages/common/client.py` | 4 |
+| 5 demo scenarios | `examples/` | — |
+| 7 ADRs | `docs/adr/` | — |
+| Architecture docs | `docs/` | — |
+
+## Test Growth
+
+<div class="my-6">
+  <div class="flex items-end gap-1 h-32">
+    <div class="flex-1 text-center">
+      <div style="height: 26%" class="bg-cyan-500/30 rounded-t border border-cyan-500/50 mx-1"></div>
+      <span class="text-xs text-slate-500 mt-1">P1: 19</span>
+    </div>
+    <div class="flex-1 text-center">
+      <div style="height: 50%" class="bg-emerald-500/30 rounded-t border border-emerald-500/50 mx-1"></div>
+      <span class="text-xs text-slate-500 mt-1">P2: 36</span>
+    </div>
+    <div class="flex-1 text-center">
+      <div style="height: 65%" class="bg-violet-500/30 rounded-t border border-violet-500/50 mx-1"></div>
+      <span class="text-xs text-slate-500 mt-1">P3: 47</span>
+    </div>
+    <div class="flex-1 text-center">
+      <div style="height: 82%" class="bg-orange-500/30 rounded-t border border-orange-500/50 mx-1"></div>
+      <span class="text-xs text-slate-500 mt-1">P4: 59</span>
+    </div>
+    <div class="flex-1 text-center">
+      <div style="height: 90%" class="bg-amber-500/30 rounded-t border border-amber-500/50 mx-1"></div>
+      <span class="text-xs text-slate-500 mt-1">P5: 65</span>
+    </div>
+    <div class="flex-1 text-center">
+      <div style="height: 94%" class="bg-rose-500/30 rounded-t border border-rose-500/50 mx-1"></div>
+      <span class="text-xs text-slate-500 mt-1">P6: 68</span>
+    </div>
+    <div class="flex-1 text-center">
+      <div style="height: 100%" class="bg-cyan-500/30 rounded-t border border-cyan-500/50 mx-1"></div>
+      <span class="text-xs text-slate-500 mt-1">P7: 72</span>
+    </div>
+  </div>
+</div>

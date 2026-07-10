@@ -1,0 +1,114 @@
+---
+title: Agent Identity Lab
+description: Open-source identity and authorization control plane for AI agents — agents as first-class security principals
+---
+
+<script>
+  import { base } from "$app/paths";
+</script>
+
+<svelte:head>
+  <title>Agent Identity Lab</title>
+</svelte:head>
+
+<div class="text-center py-20">
+  <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-cyan-800 bg-cyan-950/30 text-cyan-400 text-xs font-['JetBrains_Mono'] mb-6">
+    <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
+    v0.1.0 · Open Source · MIT
+  </div>
+  <h1 class="text-4xl sm:text-5xl font-bold text-white mb-4 tracking-tight">Agent Identity Lab</h1>
+  <p class="text-lg text-slate-400 max-w-2xl mx-auto mb-8 leading-relaxed">
+    A reference implementation demonstrating how autonomous AI agents can be represented as
+    <span class="text-cyan-400 font-semibold">first-class security principals</span> — with unique
+    identities, short-lived credentials, delegated authority, and cryptographically verifiable audit records.
+  </p>
+  <div class="flex items-center justify-center gap-4">
+    <a href="https://github.com/rmax-ai/agent-identity-lab" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/20 transition-colors no-underline font-['JetBrains_Mono'] text-sm">
+      View on GitHub
+    </a>
+    <a href={base + "/architecture/"} class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-slate-800/50 border border-slate-700 text-slate-300 hover:bg-slate-700/50 transition-colors no-underline font-['JetBrains_Mono'] text-sm">
+      Architecture →
+    </a>
+  </div>
+</div>
+
+---
+
+## Why Agent Identity?
+
+Most AI agents today authenticate using one of three weak patterns:
+
+| Pattern | Problem |
+|---------|---------|
+| Developer's personal credentials | No agent attribution |
+| Broad service account | Over-privileged access |
+| Static API keys in config | Credential leakage risk |
+
+These approaches **cannot answer**: which agent acted, for which user, from which runtime, under which policy, with which result.
+
+## Core Design
+
+Every state-changing tool call must be attributable to a **specific agent identity**, acting for a **specific user**, from a **known runtime**, under an **explicit policy decision**.
+
+```
+User Permission ∩ Agent Permission ∩ Blueprint Permission ∩ Tool Permission ∩ Environment Policy
+```
+
+## What It Does
+
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-4 my-8">
+  <div class="p-5 rounded-lg border border-slate-800 bg-slate-900/50">
+    <div class="text-cyan-400 text-lg mb-2 font-['JetBrains_Mono']">🔐 Identity</div>
+    <p class="text-sm text-slate-400">Register agents as unique principals with blueprint-based provisioning, lifecycle management, and key rotation.</p>
+  </div>
+  <div class="p-5 rounded-lg border border-slate-800 bg-slate-900/50">
+    <div class="text-emerald-400 text-lg mb-2 font-['JetBrains_Mono']">⚡ Sessions</div>
+    <p class="text-sm text-slate-400">Short-lived JWT tokens bound to runtime attestation — container digest, git commit, framework version.</p>
+  </div>
+  <div class="p-5 rounded-lg border border-slate-800 bg-slate-900/50">
+    <div class="text-violet-400 text-lg mb-2 font-['JetBrains_Mono']">🛡️ Authorization</div>
+    <p class="text-sm text-slate-400">Policy-based access control with scope intersection. OPA + Python fallback. Deny by default.</p>
+  </div>
+  <div class="p-5 rounded-lg border border-slate-800 bg-slate-900/50">
+    <div class="text-orange-400 text-lg mb-2 font-['JetBrains_Mono']">🔑 Token Broker</div>
+    <p class="text-sm text-slate-400">Downstream credentials injected server-side. Agents never see raw API keys or refresh tokens.</p>
+  </div>
+  <div class="p-5 rounded-lg border border-slate-800 bg-slate-900/50">
+    <div class="text-rose-400 text-lg mb-2 font-['JetBrains_Mono']">🚪 MCP Gateway</div>
+    <p class="text-sm text-slate-400">Enforcement boundary between agents and tools. Authenticates sessions, authorizes tool calls, injects credentials.</p>
+  </div>
+  <div class="p-5 rounded-lg border border-slate-800 bg-slate-900/50">
+    <div class="text-amber-400 text-lg mb-2 font-['JetBrains_Mono']">📋 Audit Chain</div>
+    <p class="text-sm text-slate-400">Tamper-evident append-only hash chain. Every decision cryptographically verifiable.</p>
+  </div>
+</div>
+
+## Quick Start
+
+```bash
+uv sync --extra dev
+bash scripts/generate_dev_keys.sh
+docker compose up -d
+PYTHONPATH=. uv run pytest tests/
+```
+
+## By The Numbers
+
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-4 my-8">
+  <div class="text-center p-4 rounded-lg border border-slate-800 bg-slate-900/50">
+    <div class="text-2xl font-bold text-cyan-400 font-['JetBrains_Mono']">72</div>
+    <div class="text-xs text-slate-500 mt-1">Tests</div>
+  </div>
+  <div class="text-center p-4 rounded-lg border border-slate-800 bg-slate-900/50">
+    <div class="text-2xl font-bold text-emerald-400 font-['JetBrains_Mono']">5</div>
+    <div class="text-xs text-slate-500 mt-1">Services</div>
+  </div>
+  <div class="text-center p-4 rounded-lg border border-slate-800 bg-slate-900/50">
+    <div class="text-2xl font-bold text-violet-400 font-['JetBrains_Mono']">6</div>
+    <div class="text-xs text-slate-500 mt-1">Packages</div>
+  </div>
+  <div class="text-center p-4 rounded-lg border border-slate-800 bg-slate-900/50">
+    <div class="text-2xl font-bold text-amber-400 font-['JetBrains_Mono']">7</div>
+    <div class="text-xs text-slate-500 mt-1">Phases</div>
+  </div>
+</div>

@@ -1,0 +1,172 @@
+---
+title: API Reference
+description: Identity API endpoint reference
+---
+
+<svelte:head>
+  <title>API Reference — Agent Identity Lab</title>
+</svelte:head>
+
+# API Reference
+
+All endpoints are served by the Identity API on port `8000`. Admin endpoints require `X-Admin-API-Key` header.
+
+## Blueprints
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| `POST` | `/v1/blueprints` | Admin | Create a blueprint |
+| `GET` | `/v1/blueprints` | — | List all blueprints |
+| `GET` | `/v1/blueprints/{id}` | — | Get blueprint by ID |
+| `PUT` | `/v1/blueprints/{id}` | Admin | Update blueprint |
+| `POST` | `/v1/blueprints/{id}/activate` | Admin | Activate blueprint |
+| `POST` | `/v1/blueprints/{id}/deactivate` | Admin | Deactivate blueprint |
+
+**Example request:**
+
+```bash
+curl -X POST http://localhost:8000/v1/blueprints \
+  -H "X-Admin-API-Key: dev-admin-key-change-in-production" \
+  -H "Content-Type: application/json" \
+  -d '{"slug": "research-agent", "name": "Research Agent", "max_scopes": ["repo:read"]}'
+```
+
+## Agents
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| `POST` | `/v1/agents` | Admin | Register an agent |
+| `GET` | `/v1/agents` | — | List agents (filter by `blueprint_id`, `status`) |
+| `GET` | `/v1/agents/{id}` | — | Get agent by ID |
+| `POST` | `/v1/agents/{id}/activate` | Admin | Activate agent |
+| `POST` | `/v1/agents/{id}/suspend` | Admin | Suspend agent |
+| `POST` | `/v1/agents/{id}/revoke` | Admin | Revoke agent |
+| `POST` | `/v1/agents/{id}/rotate-key` | Admin | Rotate agent public key |
+
+**Lifecycle state machine:**
+
+```
+draft → pending_approval → active → suspended → revoked
+                                      ↓
+                                decommissioned
+```
+
+Only `active` agents can create sessions.
+
+## Delegations
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| `POST` | `/v1/delegations` | Admin | Create delegation grant |
+| `GET` | `/v1/delegations/{id}` | — | Get delegation |
+| `POST` | `/v1/delegations/{id}/revoke` | Admin | Revoke delegation |
+
+## Sessions
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| `POST` | `/v1/sessions` | — | Create agent session |
+| `GET` | `/v1/sessions/{id}` | — | Get session status |
+| `POST` | `/v1/sessions/{id}/revoke` | — | Revoke session |
+
+**Session creation request:**
+
+```json
+{
+  "agent_id": "uuid",
+  "acting_user_id": "string | null",
+  "delegation_grant_id": "uuid | null",
+  "requested_scopes": ["repo:read"],
+  "requested_ttl_seconds": 900,
+  "model_id": "deepseek-chat",
+  "prompt_version": "v1",
+  "runtime_attestation": {
+    "agent_id": "uuid",
+    "container_digest": "sha256:...",
+    "git_commit": "abc123",
+    "environment": "development",
+    "host_id": "docker-local-01",
+    "framework": "hermes",
+    "framework_version": "0.4.0",
+    "model": "deepseek-chat",
+    "prompt_version": "v1",
+    "issued_at": "2026-07-10T16:00:00Z",
+    "nonce": "random-value",
+    "signature": "hex-encoded-signature"
+  }
+}
+```
+
+## Authorization
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| `POST` | `/v1/authorize` | Session token | Evaluate tool access policy |
+
+**Request:**
+
+```json
+{
+  "session_token": "eyJ...",
+  "tool": "github",
+  "operation": "search_code",
+  "resource": {"repository": "rmax-ai/example"}
+}
+```
+
+**Response:**
+
+```json
+{
+  "decision": "allow",
+  "effective_scopes": ["repo:read"],
+  "reason": "Permission intersection satisfied",
+  "decision_id": "dec_...",
+  "obligations": ["log_request"]
+}
+```
+
+## Token Broker
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| `POST` | `/v1/token-exchange` | Internal | Issue downstream credential |
+
+Called by the MCP Gateway (not directly by agents). Returns credential metadata for server-side injection.
+
+## Audit
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/v1/audit/events` | List audit events (filter by `trace_id`, `decision`) |
+| `GET` | `/v1/audit/events/{id}` | Get audit event by ID |
+| `POST` | `/v1/audit/verify-chain` | Verify tamper-evident hash chain |
+
+**Verify chain response:**
+
+```json
+{
+  "valid": true,
+  "broken_at": null
+}
+```
+
+## MCP Gateway
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| `GET/POST` | `/mcp/tools/{tool}.{operation}` | Session token | Proxy tool call through gateway |
+
+`GET /mcp/tools/github.search_code` — proxy with `Authorization: Bearer <session-token>` header.
+
+## Common Response Codes
+
+| Code | Meaning |
+|------|---------|
+| `201` | Resource created |
+| `200` | Success |
+| `400` | Bad request (validation, lifecycle constraint) |
+| `401` | Unauthorized (missing/invalid admin key or session token) |
+| `403` | Forbidden (policy denied) |
+| `404` | Resource not found |
+| `409` | Conflict (duplicate slug) |
