@@ -4,6 +4,8 @@ Open-source reference implementation of an identity and authorization control pl
 
 Agent Identity Lab demonstrates how autonomous agents can be represented as **first-class security principals** — with unique identities, short-lived credentials, delegated authority, policy-based authorization, identity-aware MCP tool access, token brokerage, and cryptographically verifiable audit records.
 
+🌐 **[Project Website →](https://rmax.ai/agent-identity-lab/)** — architecture, API reference, development phases, ADRs
+
 ## Problem
 
 Most AI agents authenticate using weak patterns (personal credentials, broad service accounts, static API keys) that fail to distinguish *which agent*, *which user*, *which runtime*, and *which permissions* were involved in any action.
@@ -37,6 +39,7 @@ PYTHONPATH=. uv run python examples/delegated_research/authorized_read.py
 
 ## Documentation
 
+- 🌐 **[Project Website](https://rmax.ai/agent-identity-lab/)** — full site with architecture, API reference, phases, ADRs
 - [Architecture](docs/architecture.md)
 - [Threat Model](docs/threat-model.md)
 - [Token Model](docs/token-model.md)
