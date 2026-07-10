@@ -8,30 +8,32 @@ from fastapi.middleware.cors import CORSMiddleware
 from packages.common.settings import settings
 
 # Structured logging
-logging.config.dictConfig({
-    "version": 1,
-    "disable_existing_loggers": False,
-    "formatters": {
-        "json": {
-            "()": "pythonjsonlogger.jsonlogger.JsonFormatter",
-            "format": "%(asctime)s %(name)s %(levelname)s %(message)s",
+logging.config.dictConfig(
+    {
+        "version": 1,
+        "disable_existing_loggers": False,
+        "formatters": {
+            "json": {
+                "()": "pythonjsonlogger.jsonlogger.JsonFormatter",
+                "format": "%(asctime)s %(name)s %(levelname)s %(message)s",
+            },
         },
-    },
-    "handlers": {
-        "console": {
-            "class": "logging.StreamHandler",
-            "formatter": "json",
-            "stream": "ext://sys.stdout",
+        "handlers": {
+            "console": {
+                "class": "logging.StreamHandler",
+                "formatter": "json",
+                "stream": "ext://sys.stdout",
+            },
         },
-    },
-    "root": {
-        "handlers": ["console"],
-        "level": settings.log_level,
-    },
-    "loggers": {
-        "identity_api": {"level": settings.log_level, "propagate": False},
-    },
-})
+        "root": {
+            "handlers": ["console"],
+            "level": settings.log_level,
+        },
+        "loggers": {
+            "identity_api": {"level": settings.log_level, "propagate": False},
+        },
+    }
+)
 
 logger = logging.getLogger("identity_api")
 
@@ -60,3 +62,13 @@ async def health():
 # Routers registered after modules are created
 # from apps.identity_api.api import blueprints, agents, sessions, delegations, authorization, audit
 # app.include_router(blueprints.router)
+
+
+def register_routers() -> None:
+    from apps.identity_api.api import agents, blueprints
+
+    app.include_router(blueprints.router)
+    app.include_router(agents.router)
+
+
+register_routers()

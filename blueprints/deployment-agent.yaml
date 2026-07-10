@@ -1,0 +1,28 @@
+id: deployment-agent
+version: 1
+name: Deployment Agent
+description: CI/CD deployment agent
+status: active
+
+approved_models:
+  - openai:gpt-5-mini
+
+approved_environments:
+  - staging
+  - production
+
+tools:
+  - id: github
+    scopes:
+      - repo:read
+      - repo:write
+      - actions:write
+      - deployments:write
+
+session:
+  max_ttl_seconds: 900
+
+runtime:
+  require_container_digest: true
+  require_git_commit: true
+  require_signed_attestation: true

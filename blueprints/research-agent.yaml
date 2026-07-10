@@ -1,0 +1,30 @@
+id: research-agent
+version: 1
+name: Research Agent
+description: Read-only technical research agent
+status: active
+
+approved_models:
+  - openai:gpt-5-mini
+  - deepseek:deepseek-chat
+
+approved_environments:
+  - development
+  - staging
+
+tools:
+  - id: github
+    scopes:
+      - repo:read
+      - issues:read
+  - id: confluence
+    scopes:
+      - pages:read
+
+session:
+  max_ttl_seconds: 1800
+
+runtime:
+  require_container_digest: true
+  require_git_commit: true
+  require_signed_attestation: true

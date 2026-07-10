@@ -1,0 +1,30 @@
+id: support-agent
+version: 1
+name: Support Agent
+description: Customer support agent with issue tracking access
+status: active
+
+approved_models:
+  - openai:gpt-5-mini
+  - deepseek:deepseek-chat
+
+approved_environments:
+  - development
+  - staging
+
+tools:
+  - id: github
+    scopes:
+      - issues:read
+      - issues:write
+  - id: confluence
+    scopes:
+      - pages:read
+
+session:
+  max_ttl_seconds: 3600
+
+runtime:
+  require_container_digest: true
+  require_git_commit: true
+  require_signed_attestation: false
