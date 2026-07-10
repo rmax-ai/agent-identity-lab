@@ -1,4 +1,5 @@
 <script>
+  import "../app.css";
   import { base } from "$app/paths";
   let { children } = $props();
 </script>
@@ -27,7 +28,9 @@
   </nav>
   <main class="pt-14">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 py-12">
-      {@render children()}
+      <div class="prose">
+        {@render children()}
+      </div>
     </div>
   </main>
   <footer class="border-t border-slate-800 py-8 text-center text-sm text-slate-600">

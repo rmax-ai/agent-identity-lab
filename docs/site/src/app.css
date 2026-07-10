@@ -1,0 +1,29 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Base overrides — keep after @tailwind directives */
+body {
+  margin: 0;
+  background: #020617;
+  color: #e2e8f0;
+}
+
+/* Typography content styles — matches the mdsvex rendered HTML */
+.prose h1 { font-family: 'JetBrains Mono', monospace; color: #fff; font-size: 2.25rem; font-weight: 700; margin-top: 1.5rem; margin-bottom: 0.5rem; }
+.prose h2 { font-family: 'JetBrains Mono', monospace; color: #e2e8f0; font-size: 1.5rem; font-weight: 600; margin-top: 2rem; margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid #1e293b; }
+.prose h3 { font-family: 'JetBrains Mono', monospace; color: #cbd5e1; font-size: 1.2rem; font-weight: 600; margin-top: 1.5rem; margin-bottom: 0.5rem; }
+.prose p { color: #94a3b8; line-height: 1.75; margin-bottom: 1rem; }
+.prose a { color: #22d3ee; text-decoration: none; }
+.prose a:hover { text-decoration: underline; }
+.prose code { font-family: 'JetBrains Mono', monospace; font-size: 0.875em; background: rgba(30, 41, 59, 0.5); padding: 0.125em 0.375em; border-radius: 4px; color: #e2e8f0; }
+.prose pre { background: rgba(15, 23, 42, 0.8); border: 1px solid #1e293b; border-radius: 8px; padding: 1rem; overflow-x: auto; margin: 1rem 0; }
+.prose pre code { background: none; padding: 0; }
+.prose ul, .prose ol { color: #94a3b8; padding-left: 1.5rem; margin-bottom: 1rem; }
+.prose li { margin-bottom: 0.25rem; }
+.prose blockquote { border-left: 3px solid #22d3ee; padding-left: 1rem; margin: 1rem 0; color: #64748b; }
+.prose table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+.prose th { text-align: left; padding: 0.5rem 0.75rem; border-bottom: 2px solid #1e293b; color: #94a3b8; font-size: 0.875rem; font-weight: 500; }
+.prose td { padding: 0.5rem 0.75rem; border-bottom: 1px solid #1e293b; font-size: 0.875rem; color: #cbd5e1; }
+.prose strong { color: #e2e8f0; }
+.prose img { max-width: 100%; border-radius: 8px; margin: 1rem 0; }
