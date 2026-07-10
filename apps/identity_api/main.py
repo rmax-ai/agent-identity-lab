@@ -65,12 +65,13 @@ async def health():
 
 
 def register_routers() -> None:
-    from apps.identity_api.api import agents, blueprints, delegations, sessions
+    from apps.identity_api.api import agents, authorization, blueprints, delegations, sessions
 
     app.include_router(blueprints.router)
     app.include_router(agents.router)
     app.include_router(sessions.router)
     app.include_router(delegations.router)
+    app.include_router(authorization.router)
 
 
 register_routers()
