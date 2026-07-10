@@ -9,6 +9,7 @@ from jwt.exceptions import (
     InvalidSignatureError,
     InvalidTokenError,
 )
+from jwt.types import Options
 
 from packages.common.settings import Settings
 from packages.token_library.keys import load_public_key
@@ -17,7 +18,7 @@ from packages.token_library.keys import load_public_key
 def validate_session_token(token: str, settings: Settings) -> dict[str, Any]:
     """Validate and decode an Agent Session Token."""
     public_key = load_public_key(settings)
-    options = {"require": ["exp", "iat", "jti", "iss", "aud", "sub"]}
+    options: Options = {"require": ["exp", "iat", "jti", "iss", "aud", "sub"]}
 
     try:
         claims = jwt.decode(

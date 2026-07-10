@@ -6,7 +6,7 @@ from typing import Any, ClassVar
 
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.asymmetric import padding
+from cryptography.hazmat.primitives.asymmetric import padding, rsa
 
 from packages.common.enums import VerificationResult
 
@@ -29,6 +29,8 @@ class AttestationVerifier:
         canonical = json.dumps(attestation_data, sort_keys=True)
         try:
             public_key = serialization.load_pem_public_key(public_key_pem.encode())
+            if not isinstance(public_key, rsa.RSAPublicKey):
+                return VerificationResult.REJECTED, "Unsupported public key type"
             public_key.verify(
                 bytes.fromhex(signature),
                 canonical.encode(),
@@ -90,6 +92,8 @@ class AttestationVerifier:
             private_key_pem.encode(),
             password=None,
         )
+        if not isinstance(private_key, rsa.RSAPrivateKey):
+            raise ValueError("Unsupported private key type")
         signature = private_key.sign(
             canonical.encode(),
             padding.PKCS1v15(),

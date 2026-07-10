@@ -1,4 +1,5 @@
 import uuid
+from collections.abc import Mapping
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
@@ -9,7 +10,7 @@ from packages.identity_models.credential_lease import CredentialLease
 
 
 class ExchangeService:
-    def __init__(self, db: AsyncSession, providers: dict[str, CredentialProvider]):
+    def __init__(self, db: AsyncSession, providers: Mapping[str, CredentialProvider]):
         self.db = db
         self.providers = providers
 

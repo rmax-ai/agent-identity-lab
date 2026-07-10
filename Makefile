@@ -1,4 +1,4 @@
-.PHONY: run test lint format check demo-authorized-read demo-denied-write demo-suspended-agent demo-invalid-runtime demo-secret-isolation
+.PHONY: run test lint format check demo-authorized-read demo-denied-write demo-suspended-agent demo-invalid-runtime demo-secret-isolation demo-machine-only
 
 run:
 	docker compose up -d
@@ -35,3 +35,7 @@ demo-invalid-runtime:
 demo-secret-isolation:
 	@echo "Running secret isolation demo..."
 	uv run python examples/delegated_research/secret_isolation.py
+
+demo-machine-only:
+	@echo "Running machine-only session demo..."
+	uv run python examples/hermes_agent/machine_only_session.py
