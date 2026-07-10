@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+.venv/
+venv/
+
+# Ruff
+.ruff_cache/
+
+# Type check
+.pyre/
+
+# Environment
+.env
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Docker
+.postgres-data/
+
+# Handoff docs (ephemeral)
+HANDOFF-*.md
+
+# OS
+.DS_Store
+Thumbs.db

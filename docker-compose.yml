@@ -1,0 +1,94 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-ail}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ail_dev}
+      POSTGRES_DB: agent_identity_lab
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-ail}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  opa:
+    image: openpolicyagent/opa:latest-static
+    command:
+      - "run"
+      - "--server"
+      - "--addr=0.0.0.0:8181"
+      - "/policies"
+    ports:
+      - "8181:8181"
+    volumes:
+      - ./policies:/policies:ro
+
+  identity_api:
+    build:
+      context: .
+      dockerfile: apps/identity_api/Dockerfile
+    ports:
+      - "${IDENTITY_API_PORT:-8000}:8000"
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-ail}:${POSTGRES_PASSWORD:-ail_dev}@postgres:5432/agent_identity_lab
+      OPA_URL: http://opa:8181
+      JWT_PRIVATE_KEY_PATH: /keys/private.pem
+      JWT_PUBLIC_KEY_PATH: /keys/public.pem
+    volumes:
+      - ./keys:/keys:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      opa:
+        condition: service_started
+
+  token_broker:
+    build:
+      context: .
+      dockerfile: apps/token_broker/Dockerfile
+    ports:
+      - "${TOKEN_BROKER_PORT:-8001}:8001"
+    environment:
+      IDENTITY_API_URL: http://identity_api:8000
+    depends_on:
+      - identity_api
+
+  mcp_gateway:
+    build:
+      context: .
+      dockerfile: apps/mcp_gateway/Dockerfile
+    ports:
+      - "${MCP_GATEWAY_PORT:-8002}:8002"
+    environment:
+      IDENTITY_API_URL: http://identity_api:8000
+      TOKEN_BROKER_URL: http://token_broker:8001
+    depends_on:
+      - identity_api
+      - token_broker
+
+  mock_mcp_server:
+    build:
+      context: .
+      dockerfile: apps/mock_mcp_server/Dockerfile
+    ports:
+      - "${MOCK_MCP_PORT:-8003}:8003"
+
+  admin_ui:
+    build:
+      context: apps/admin_ui
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+    depends_on:
+      - identity_api
+
+volumes:
+  postgres_data:
